@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 
 // importamos rutas
 var usuarioRuotes = require('./routes/usuario');
+var loginRoutes = require('./routes/loginApp');
 var appRuotes = require('./routes/app');
 
 // inicializar variables
@@ -24,6 +25,7 @@ mongoose.connection
 
 // rutas
 app.use('/usuario', usuarioRuotes);
+app.use('/login', loginRoutes);
 app.use('/', appRuotes);
 
 // listener de peticiones

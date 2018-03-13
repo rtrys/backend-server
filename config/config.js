@@ -1,0 +1,1 @@
+module.exports.SEED = "Este-es-el-seed@con-Simbolos";
