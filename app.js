@@ -4,7 +4,9 @@ var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 
 // importamos rutas
-var usuarioRuotes = require('./routes/usuario');
+var usuarioRoutes = require('./routes/usuario');
+var hospitalRoutes = require('./routes/hospital');
+var medicoRoutes = require('./routes/medico');
 var loginRoutes = require('./routes/loginApp');
 var appRuotes = require('./routes/app');
 
@@ -24,7 +26,9 @@ mongoose.connection
     });
 
 // rutas
-app.use('/usuario', usuarioRuotes);
+app.use('/usuario', usuarioRoutes);
+app.use('/hospital', hospitalRoutes);
+app.use('/medico', medicoRoutes);
 app.use('/login', loginRoutes);
 app.use('/', appRuotes);
 
