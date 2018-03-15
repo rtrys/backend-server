@@ -11,23 +11,29 @@ var app = express();
 // =======================================
 app.get('/', (req, res) => {
 
-    Usuario.find({}, 'nombre email img role')
-        .exec(
-            (err, usuarios) => {
-                if (err) {
-                    return res.status(500).json({
-                        ok: false,
-                        message: "Error cargando usuarios",
-                        errs: err
-                    });
-                }
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
 
+    Usuario.find({}, 'nombre email img role')
+        .skip(desde)
+        .limit(3)
+        .exec((err, usuarios) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    message: "Error cargando usuarios",
+                    errs: err
+                });
+            }
+
+            Usuario.count({}, (err, conteo) => {
                 res.status(200).json({
                     ok: true,
-                    usuarios: usuarios
+                    usuarios: usuarios,
+                    total: conteo
                 });
             });
-
+        });
 });
 
 // =======================================

@@ -7,7 +7,9 @@ var bodyParser = require('body-parser');
 var usuarioRoutes = require('./routes/usuario');
 var hospitalRoutes = require('./routes/hospital');
 var medicoRoutes = require('./routes/medico');
-var loginRoutes = require('./routes/loginApp');
+var busquedaRoutes = require('./routes/busqueda');
+var loginRoutes = require('./routes/login');
+var uploadRoutes = require('./routes/upload');
 var appRuotes = require('./routes/app');
 
 // inicializar variables
@@ -28,6 +30,8 @@ mongoose.connection
 // rutas
 app.use('/usuario', usuarioRoutes);
 app.use('/hospital', hospitalRoutes);
+app.use('/busqueda', busquedaRoutes);
+app.use('/upload', uploadRoutes);
 app.use('/medico', medicoRoutes);
 app.use('/login', loginRoutes);
 app.use('/', appRuotes);
