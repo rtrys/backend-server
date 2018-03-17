@@ -11,6 +11,7 @@ var busquedaRoutes = require('./routes/busqueda');
 var loginRoutes = require('./routes/login');
 var uploadRoutes = require('./routes/upload');
 var appRuotes = require('./routes/app');
+var imagenRoutes = require('./routes/imagenes');
 
 // inicializar variables
 var app = express();
@@ -27,11 +28,20 @@ mongoose.connection
         console.log('DB mongo \x1b[32m%s\x1b[0m', 'online');
     });
 
+/*
+// confugracion del serve index
+// configuracion de ejemplo
+var serveIndex = require('serve-index');
+app.use(express.static(__dirname + '/'))
+app.use('/uploads', serveIndex(__dirname + '/uploads'));
+*/
+
 // rutas
 app.use('/usuario', usuarioRoutes);
 app.use('/hospital', hospitalRoutes);
 app.use('/busqueda', busquedaRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/img', imagenRoutes);
 app.use('/medico', medicoRoutes);
 app.use('/login', loginRoutes);
 app.use('/', appRuotes);
