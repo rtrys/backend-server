@@ -23,7 +23,8 @@ app.post('/google', (req, res) => {
     async function verify() {
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: GOOGLE_CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+            audience: GOOGLE_CLIENT_ID,
+            // Specify the CLIENT_ID of the app that accesses the backend
             // Or, if multiple clients access the backend:
             //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
         });
@@ -51,11 +52,8 @@ app.post('/google', (req, res) => {
                         errs: { message: "Usuario creado con email y password, no con google" }
                     });
                 } else {
-                    // crear el token
-                    usuario.password = "*****";
-                    var token = jwt.sign({ usuario: usuario },
-                        //SEED, { expiresIn: 14400 }); // debe expirar en 4 horas 
-                        SEED, { expiresIn: 14400000000000 }); // debe expirar en saber cuanto tiempo 
+
+                    createToken(usuario);
 
                     return res.status(200).json({
                         ok: true,
@@ -85,11 +83,7 @@ app.post('/google', (req, res) => {
                         });
                     }
 
-                    // crear el token
-                    usuario.password = "*****";
-                    var token = jwt.sign({ usuario: usuario },
-                        //SEED, { expiresIn: 14400 }); // debe expirar en 4 horas 
-                        SEED, { expiresIn: 14400000000000 }); // debe expirar en saber cuanto tiempo 
+                    createToken(usuario);
 
                     return res.status(200).json({
                         ok: true,
@@ -149,11 +143,7 @@ app.post('/', (req, res) => {
             });
         }
 
-        // crear el token
-        usuarioDB.password = "*****";
-        var token = jwt.sign({ usuario: usuarioDB },
-            //SEED, { expiresIn: 14400 }); // debe expirar en 4 horas 
-            SEED, { expiresIn: 14400000000000 }); // debe expirar en saber cuanto tiempo 
+        createToken(usuarioDB);
 
         res.status(200).json({
             ok: true,
@@ -165,5 +155,17 @@ app.post('/', (req, res) => {
 
 
 });
+
+function createToken(usuario) {
+
+    // me aseguro que no sea expuesta la clave
+    usuario.password = "*****";
+
+    // el token debe expirar en 4 horas 
+    return token = jwt.sign({ usuario: usuario },
+        SEED, { expiresIn: 14400 }
+    );
+
+}
 
 module.exports = app;

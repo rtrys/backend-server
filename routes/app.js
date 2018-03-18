@@ -1,12 +1,10 @@
 var express = require('express');
+var response = require('../config/config').response;
 
 var app = express();
 
 app.get('/', (req, res, next) => {
-    res.status(200).json({
-        ok: true,
-        message: "Peticion realizada correctamente"
-    });
+    response.statusOK(res);
 });
 
 module.exports = app;

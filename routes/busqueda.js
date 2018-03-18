@@ -1,5 +1,7 @@
 var express = require('express');
 
+var response = require('../config/config').response;
+
 var Hospital = require('../models/hospital');
 var Usuario = require('../models/usuario');
 var Medico = require('../models/medico');
