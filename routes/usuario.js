@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: "Error cargando usuarios",
+                    message: 'Error cargando usuarios',
                     errs: err
                 });
             }
@@ -49,7 +49,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: "Error al buscar usuario",
+                message: 'Error al buscar usuario',
                 errs: err
             });
         }
@@ -57,8 +57,8 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         if (!usuario) {
             return res.status(400).json({
                 ok: false,
-                message: "El usuario con id " + id + " no existe",
-                errs: { message: "no existe un usuario con este Id" }
+                message: `El usuario con id ${id} no existe`,
+                errs: { message: 'no existe un usuario con este Id' }
             });
         }
 
@@ -70,7 +70,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    message: "Error actualizando usuario",
+                    message: 'Error actualizando usuario',
                     errs: err
                 });
             }
@@ -91,7 +91,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 // =======================================
 // Crear un nuevo usuario
 // =======================================
-app.post('/', mdAutenticacion.verificaToken, (req, res, next) => {
+app.post('/', (req, res) => {
 
     var body = req.body;
 
@@ -107,10 +107,12 @@ app.post('/', mdAutenticacion.verificaToken, (req, res, next) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
-                message: "Error creando usuario",
+                message: 'Error creando usuario',
                 errs: err
             });
         }
+
+        usuarioGuardado.password = '*****';
 
         res.status(201).json({
             ok: true,
@@ -132,7 +134,7 @@ app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: "Error al borrar usuario",
+                message: 'Error al borrar usuario',
                 errs: err
             });
         }

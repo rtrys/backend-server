@@ -53,12 +53,12 @@ app.post('/google', (req, res) => {
                     });
                 } else {
 
-                    createToken(usuario);
+                    let jwtToken = createToken(usuario);
 
                     return res.status(200).json({
                         ok: true,
                         usuario: usuario,
-                        token: token,
+                        token: jwtToken,
                         id: usuario._id
                     });
                 }
@@ -66,7 +66,7 @@ app.post('/google', (req, res) => {
             } else {
                 // No se ha encontrado ningun usuario con ese email
 
-                var usuario = new Usuario({
+                var usuarioNuevo = new Usuario({
                     nombre: payload.name,
                     email: payload.email,
                     password: "*****",
@@ -74,7 +74,7 @@ app.post('/google', (req, res) => {
                     google: true
                 });
 
-                usuario.save((err, usuario) => {
+                usuarioNuevo.save((err, usuario) => {
                     if (err) {
                         return res.status(500).json({
                             ok: false,
@@ -83,12 +83,12 @@ app.post('/google', (req, res) => {
                         });
                     }
 
-                    createToken(usuario);
+                    let jwtToken = createToken(usuario);
 
                     return res.status(200).json({
                         ok: true,
                         usuario: usuario,
-                        token: token,
+                        token: jwtToken,
                         id: usuario._id
                     });
 
