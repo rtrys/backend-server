@@ -14,13 +14,13 @@ app.get('/', (req, res, next) => {
 
     Hospital.find({})
         .skip(desde)
-        .limit(3)
+        .limit(5)
         .populate('usuario', 'nombre email')
         .exec((err, hospitales) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: "Error al obtener los hospitales",
+                    message: 'Error al obtener los hospitales',
                     errs: err
                 });
             }
@@ -49,15 +49,15 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: "Error al buscar el hospital"
+                message: 'Error al buscar el hospital'
             });
         }
 
         if (!hospital) {
             return res.status(400).json({
                 ok: false,
-                message: "No se encuentra el hospital con ID: " + id,
-                errs: { message: "No se encuentra el hospital con el ID: " + id }
+                message: 'No se encuentra el hospital con ID: ' + id,
+                errs: { message: 'No se encuentra el hospital con el ID: ' + id }
             });
         }
 
@@ -68,7 +68,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    message: "Error al guardar el hospital",
+                    message: 'Error al guardar el hospital',
                     errs: err
                 });
             }
@@ -98,7 +98,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
-                message: "Error al guardar el hospital",
+                message: 'Error al guardar el hospital',
                 errs: err
             });
         }
@@ -122,7 +122,7 @@ app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: "Error al borrar el hospital",
+                message: 'Error al borrar el hospital',
                 errs: err
             });
         }

@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
 
     Medico.find({})
         .skip(desde)
-        .limit(3)
+        .limit(5)
         .populate('usuario', 'nombre email')
         .populate('hospital')
         .exec((err, medicos) => {
@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: "Error al buscar los medicos",
+                    message: 'Error al buscar los medicos',
                     errs: err
                 });
             }
@@ -50,7 +50,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: "Erro al buscar el medico",
+                message: 'Erro al buscar el medico',
                 errs: err
             });
         }
@@ -58,8 +58,8 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         if (!medico) {
             return res.status(400).json({
                 ok: false,
-                message: "No es encuentr el medico con ID " + id,
-                errs: { message: "No se encuentra el medico con el ID " + id }
+                message: 'No es encuentr el medico con ID ' + id,
+                errs: { message: 'No se encuentra el medico con el ID ' + id }
             });
         }
 
@@ -71,7 +71,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    message: "No se puedo actualizar el medico",
+                    message: 'No se puedo actualizar el medico',
                     errs: err
                 });
             }
@@ -104,7 +104,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
-                message: "No es posible crear el medico",
+                message: 'No es posible crear el medico',
                 errs: err
             });
         }
@@ -127,7 +127,7 @@ app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: "Error al borrar el medico",
+                message: 'Error al borrar el medico',
                 errs: err
             });
         }
