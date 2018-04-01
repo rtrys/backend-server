@@ -1,14 +1,12 @@
 var express = require('express');
 
-var response = require('../config/config').response;
-
 var Hospital = require('../models/hospital');
 var Usuario = require('../models/usuario');
 var Medico = require('../models/medico');
 
 var app = express();
 
-app.get('/todo/:busqueda', (req, res, next) => {
+app.get('/todo/:busqueda', (req, res) => {
 
     var busqueda = req.params.busqueda;
     var regex = new RegExp(busqueda, 'i');
@@ -31,7 +29,7 @@ app.get('/todo/:busqueda', (req, res, next) => {
 
 });
 
-app.get('/coleccion/:tabla/:busqueda', (req, res, next) => {
+app.get('/coleccion/:tabla/:busqueda', (req, res) => {
 
     var tabla = req.params.tabla;
     var busqueda = req.params.busqueda;
@@ -52,8 +50,8 @@ app.get('/coleccion/:tabla/:busqueda', (req, res, next) => {
         default:
             return res.status(400).json({
                 ok: false,
-                message: "Los tipos de busqueda son: usuarios, medico y hospitales",
-                errs: { message: "Tipo de tabla / coleccion no valido" }
+                message: 'Los tipos de busqueda son: usuarios, medico y hospitales',
+                errs: { message: 'Tipo de tabla / coleccion no valido' }
             });
     }
 
@@ -69,7 +67,8 @@ app.get('/coleccion/:tabla/:busqueda', (req, res, next) => {
 function buscarHospitales(busqueda, regex) {
     return new Promise((resolve, reject) => {
         Hospital.find()
-            .populate('usuario', 'nombre email')
+            .or([{ 'nombre': regex }])
+            .populate('usuario', 'nombre email img')
             .exec({ nombre: regex }, (err, hospitales) => {
                 if (err) {
                     reject('Error al cargar hospitales', err);
@@ -83,8 +82,9 @@ function buscarHospitales(busqueda, regex) {
 function buscarMedicos(busqueda, regex) {
     return new Promise((resolve, reject) => {
         Medico.find()
+            .or([{ 'nombre': regex }])
             .populate('hospital')
-            .populate('usuario', 'nombre email')
+            .populate('usuario', 'nombre email img')
             .exec({ nombre: regex }, (err, medicos) => {
                 if (err) {
                     reject('Error al cargar medicos', err);
@@ -97,7 +97,7 @@ function buscarMedicos(busqueda, regex) {
 
 function buscarUsuarios(busqueda, regex) {
     return new Promise((resolve, reject) => {
-        Usuario.find({}, 'nombre email, role')
+        Usuario.find({}, 'nombre email role img')
             .or([{ 'nombre': regex }, { 'email': regex }])
             .exec((err, usuarios) => {
                 if (err) {

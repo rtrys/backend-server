@@ -7,7 +7,7 @@ var app = express();
 // =======================================
 // Obtener todos los hospitales
 // =======================================
-app.get('/', (req, res, next) => {
+app.get('/', (req, res) => {
 
     var desde = req.query.desde || 0;
     desde = Number(desde);
@@ -31,6 +31,41 @@ app.get('/', (req, res, next) => {
                     hospitales: hospitales,
                     total: conteo
                 });
+            });
+        });
+
+});
+
+// =======================================
+// Obtener un hospital
+// =======================================
+app.get('/:id', (req, res) => {
+
+    let id = req.params.id;
+
+    Hospital.findById(id)
+        .populate('usuario', 'nombre img email')
+        .exec((err, hospital) => {
+
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    message: 'Error al buscar el hospital',
+                    errs: err
+                });
+            }
+
+            if (!hospital) {
+                return res.status(400).json({
+                    ok: false,
+                    message: `El hospital con el ID ${id} no existe`,
+                    errs: { message: 'No existe hospital con ese ID' }
+                });
+            }
+
+            res.status(200).json({
+                ok: true,
+                hospital
             });
         });
 

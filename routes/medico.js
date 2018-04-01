@@ -38,6 +38,42 @@ app.get('/', (req, res) => {
 });
 
 // =======================================
+// Obtener todos los medicos
+// =======================================
+app.get('/:id', (req, res) => {
+
+    var id = req.params.id;
+    Medico.findById(id)
+        .populate('usuario', 'nombre email img')
+        .populate('hospital')
+        .exec((err, medico) => {
+
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    message: 'Erro al buscar el medico',
+                    errs: err
+                });
+            }
+
+            if (!medico) {
+                return res.status(400).json({
+                    ok: false,
+                    message: 'No es encuentr el medico con ID ' + id,
+                    errs: { message: 'No se encuentra el medico con el ID ' + id }
+                });
+            }
+
+            return res.status(200).json({
+                ok: true,
+                medico
+            });
+
+        });
+
+});
+
+// =======================================
 // Editar un medico
 // =======================================
 app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {

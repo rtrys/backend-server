@@ -19,16 +19,16 @@ app.put('/:tipo/:id', (req, res, next) => {
     if (colecciones.indexOf(tipo) < 0) {
         return res.status(400).json({
             ok: false,
-            message: "No selecciono un tipo valido",
-            errs: { message: "Debe selecionar un tipo valido" }
+            message: 'No selecciono un tipo valido',
+            errs: { message: 'Debe selecionar un tipo valido' }
         });
     }
 
     if (!req.files) {
         return res.status(400).json({
             ok: false,
-            message: "No selecciono ningun archivo",
-            errs: { message: "Debe selecionar una imagen" }
+            message: 'No selecciono ningun archivo',
+            errs: { message: 'Debe selecionar una imagen' }
         });
     }
 
@@ -41,8 +41,8 @@ app.put('/:tipo/:id', (req, res, next) => {
     if (extsValidas.indexOf(extFile) < 0) {
         return res.status(400).json({
             ok: false,
-            message: "Extencion no valida",
-            errs: { message: "las extenciones validas son: " + extsValidas.join(', ') }
+            message: 'Extencion no valida',
+            errs: { message: 'las extenciones validas son: ' + extsValidas.join(', ') }
         });
     }
 
@@ -55,7 +55,7 @@ app.put('/:tipo/:id', (req, res, next) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: "Error al mover el archivo",
+                message: 'Error al mover el archivo',
                 errs: err
             });
         }
@@ -73,7 +73,7 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: "Error al buscar al usuario",
+                    message: 'Error al buscar al usuario',
                     errs: err
                 });
             }
@@ -81,8 +81,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
             if (!usuarioEncontrado) {
                 return res.status(400).json({
                     ok: false,
-                    message: "Usuario nulo",
-                    errs: { message: "Usuario nulo" }
+                    message: 'Usuario nulo',
+                    errs: { message: 'Usuario nulo' }
                 });
             }
 
@@ -90,10 +90,10 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
 
             usuarioEncontrado.img = nombreArchivo;
             usuarioEncontrado.save((err, usuarioActualizado) => {
-                usuarioActualizado.password = "*******";
+                usuarioActualizado.password = '*******';
                 return res.status(200).json({
                     ok: true,
-                    message: "Imagen de usuario actualizado",
+                    message: 'Imagen de usuario actualizado',
                     usuario: usuarioActualizado
                 });
             });
@@ -108,7 +108,7 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: "Error al buscar al medico",
+                    message: 'Error al buscar al medico',
                     errs: err
                 });
             }
@@ -116,8 +116,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
             if (!medicoEncontrado) {
                 return res.status(400).json({
                     ok: false,
-                    message: "Medico nulo",
-                    errs: { message: "Medico nulo" }
+                    message: 'Medico nulo',
+                    errs: { message: 'Medico nulo' }
                 });
             }
 
@@ -127,8 +127,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
             medicoEncontrado.save((err, medicoActualizado) => {
                 return res.status(200).json({
                     ok: true,
-                    message: "Imagen de medico actualizado",
-                    usuario: medicoActualizado
+                    message: 'Imagen de medico actualizado',
+                    medico: medicoActualizado
                 });
             });
 
@@ -142,7 +142,7 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: "Error al buscar al hospital",
+                    message: 'Error al buscar al hospital',
                     errs: err
                 });
             }
@@ -150,8 +150,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
             if (!hospitalEncontrado) {
                 return res.status(400).json({
                     ok: false,
-                    message: "hospital nulo",
-                    errs: { message: "hospital nulo" }
+                    message: 'hospital nulo',
+                    errs: { message: 'hospital nulo' }
                 });
             }
 
@@ -161,8 +161,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
             hospitalEncontrado.save((err, hospitalActualizado) => {
                 return res.status(200).json({
                     ok: true,
-                    message: "Imagen de hospital actualizado",
-                    usuario: hospitalActualizado
+                    message: 'Imagen de hospital actualizado',
+                    hospital: hospitalActualizado
                 });
             });
 
