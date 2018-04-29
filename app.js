@@ -31,7 +31,7 @@ app.use(bodyParser.json());
 
 // conexion a db
 mongoose.connection
-    .openUri('mongodb://root:toor@ds163918.mlab.com:63918/hospitaldb', (err, res) => {
+    .openUri(`mongodb://${process.env.MONGO_AUTH}@${process.env.MONGO_HOST}`, (err, res) => {
         if (err) throw err;
         console.log('DB mongo \x1b[32m%s\x1b[0m', 'online');
     });

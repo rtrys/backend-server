@@ -4,7 +4,8 @@
     "description": "Backend",
     "main": "app.js",
     "scripts": {
-        "start": "nodemon app.js",
+        "prestart": "npm install",
+        "start": "node -r dotenv/config app.js && nodemon app.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
@@ -12,6 +13,7 @@
     "dependencies": {
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.18.2",
+        "dotenv": "^5.0.1",
         "express": "^4.16.2",
         "express-fileupload": "^0.4.0",
         "google-auth-library": "^1.3.2",

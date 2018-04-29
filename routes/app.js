@@ -3,7 +3,7 @@ var response = require('../config/config').response;
 
 var app = express();
 
-app.get('/', (req, res, next) => {
+app.get('/', (req, res) => {
     response.statusOK(res);
 });
 

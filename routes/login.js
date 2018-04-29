@@ -1,10 +1,8 @@
 var express = require('express');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
+var mdAuth = require('../middlewares/autenticacion');
 
-const SEED = require('../config/config').SEED;
-const GOOGLE_CLIENT_ID = require('../config/config').GOOGLE_CLIENT_ID;
-const GOOGLE_SECRET = require('../config/config').GOOGLE_SECRET;
 const { OAuth2Client } = require('google-auth-library');
 
 var app = express();
@@ -18,12 +16,12 @@ app.post('/google', (req, res) => {
 
     var token = req.body.token;
 
-    const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_SECRET, '');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_SECRET, '');
 
     async function verify() {
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: GOOGLE_CLIENT_ID,
+            audience: process.env.GOOGLE_CLIENT_ID,
             // Specify the CLIENT_ID of the app that accesses the backend
             // Or, if multiple clients access the backend:
             //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
@@ -159,6 +157,19 @@ app.post('/', (req, res) => {
 
 });
 
+// =========================================
+// autenticacion normal
+// =========================================
+app.post('/renuevatoken', [mdAuth.verificaToken], (req, res) => {
+
+    var token = createToken(req.usuario);
+
+    return res.status(200).json({
+        ok: true,
+        token: token
+    });
+});
+
 function createToken(usuario) {
 
     // me aseguro que no sea expuesta la clave
@@ -166,7 +177,7 @@ function createToken(usuario) {
 
     // el token debe expirar en 4 horas 
     return token = jwt.sign({ usuario: usuario },
-        SEED, { expiresIn: 14400 }
+        process.env.JWT_SEED, { expiresIn: 14400 }
     );
 
 }
