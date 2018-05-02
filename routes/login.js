@@ -3,7 +3,9 @@ var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 var mdAuth = require('../middlewares/autenticacion');
 
+// google
 const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 var app = express();
 var Usuario = require('../models/usuario');
@@ -12,102 +14,106 @@ var Usuario = require('../models/usuario');
 // =========================================
 // autenticacion con google
 // =========================================
-app.post('/google', (req, res) => {
+async function verify(token) {
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+        // Specify the CLIENT_ID of the app that accesses the backend
+        // Or, if multiple clients access the backend:
+        //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+    });
+    const payload = ticket.getPayload();
+    //const userid = payload['sub'];
+    // If request specified a G Suite domain:
+    //const domain = payload['hd'];
+
+    return {
+        nombre: payload.name,
+        email: payload.email,
+        img: payload.picture,
+        google: true
+    };
+}
+
+app.post('/google', async(req, res) => {
 
     var token = req.body.token;
 
-    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_SECRET, '');
-
-    async function verify() {
-        const ticket = await client.verifyIdToken({
-            idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID,
-            // Specify the CLIENT_ID of the app that accesses the backend
-            // Or, if multiple clients access the backend:
-            //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+    var userGoogle = await verify(token)
+        .catch(err => {
+            return res.status(403).json({
+                ok: false,
+                message: "Token no valido",
+                errs: err
+            });
         });
-        const payload = ticket.getPayload();
-        const userid = payload['sub'];
-        // If request specified a G Suite domain:
-        //const domain = payload['hd'];
 
-        Usuario.findOne({
-            email: payload.email
-        }, (err, usuario) => {
-            if (err) {
-                return res.status(500).json({
+    Usuario.findOne({
+        email: userGoogle.email
+    }, (err, usuario) => {
+        if (err) {
+            return res.status(500).json({
+                ok: false,
+                mensaje: "Error al buscar usuario",
+                errs: err
+            });
+        }
+
+        if (usuario) {
+            if (!usuario.google) {
+                return res.status(400).json({
                     ok: false,
-                    mensaje: "Error al buscar usuario",
-                    errs: err
+                    mensaje: "Usar autnticacion normal",
+                    errs: { message: "Usuario creado con email y password, no con google" }
+                });
+            } else {
+
+                let jwtToken = createToken(usuario);
+
+                return res.status(200).json({
+                    ok: true,
+                    usuario: usuario,
+                    token: jwtToken,
+                    id: usuario._id,
+                    menu: obtenerMenu(usuario.role)
                 });
             }
 
-            if (usuario) {
-                if (!usuario.google) {
-                    return res.status(400).json({
+        } else {
+            // No se ha encontrado ningun usuario con ese email
+
+            var usuarioNuevo = new Usuario({
+                nombre: userGoogle.name,
+                email: userGoogle.email,
+                password: "*****",
+                img: userGoogle.picture,
+                google: true
+            });
+
+            usuarioNuevo.save((err, usuario) => {
+                if (err) {
+                    return res.status(500).json({
                         ok: false,
-                        mensaje: "Usar autnticacion normal",
-                        errs: { message: "Usuario creado con email y password, no con google" }
-                    });
-                } else {
-
-                    let jwtToken = createToken(usuario);
-
-                    return res.status(200).json({
-                        ok: true,
-                        usuario: usuario,
-                        token: jwtToken,
-                        id: usuario._id,
-                        menu: obtenerMenu(usuario.role)
+                        mensaje: "Error al crear usuario",
+                        errs: err
                     });
                 }
 
-            } else {
-                // No se ha encontrado ningun usuario con ese email
+                let jwtToken = createToken(usuario);
 
-                var usuarioNuevo = new Usuario({
-                    nombre: payload.name,
-                    email: payload.email,
-                    password: "*****",
-                    img: payload.picture,
-                    google: true
+                return res.status(200).json({
+                    ok: true,
+                    usuario: usuario,
+                    token: jwtToken,
+                    id: usuario._id,
+                    menu: obtenerMenu(usuario.role)
                 });
 
-                usuarioNuevo.save((err, usuario) => {
-                    if (err) {
-                        return res.status(500).json({
-                            ok: false,
-                            mensaje: "Error al crear usuario",
-                            errs: err
-                        });
-                    }
+            });
 
-                    let jwtToken = createToken(usuario);
+        }
 
-                    return res.status(200).json({
-                        ok: true,
-                        usuario: usuario,
-                        token: jwtToken,
-                        id: usuario._id,
-                        menu: obtenerMenu(usuario.role)
-                    });
-
-                });
-
-            }
-
-        });
-    }
-
-    verify().catch(err => {
-        console.log(err);
-        res.status(400).json({
-            ok: false,
-            message: "no funciono",
-            errs: err
-        });
     });
-
 });
 
 // =========================================
