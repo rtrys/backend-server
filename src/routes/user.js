@@ -1,32 +1,31 @@
-var express = require('express');
-var Usuario = require('../models/usuario');
-var bcrypt = require('bcryptjs');
-var mdAutenticacion = require('../middlewares/autenticacion');
+const express = require('express');
+const User = require('../models/user');
+const bcrypt = require('bcryptjs');
+const mdAuth = require('../middlewares/auth');
 
-var app = express();
+const app = express();
 
 
 // =======================================
-// Obtener todos los usuarios
+// GET all users
 // =======================================
 app.get('/', (req, res) => {
 
-    var desde = req.query.desde || 0;
-    desde = Number(desde);
+    var desde = Number(req.query.desde || 0);
 
-    Usuario.find({}, 'nombre email img role google')
+    User.find({}, 'name email img role google')
         .skip(desde)
         .limit(5)
         .exec((err, usuarios) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: 'Error cargando usuarios',
+                    message: 'Error getting users',
                     errs: err
                 });
             }
 
-            Usuario.count({}, (err, conteo) => {
+            User.count({}, (err, conteo) => {
                 res.status(200).json({
                     ok: true,
                     usuarios: usuarios,
@@ -39,12 +38,12 @@ app.get('/', (req, res) => {
 // =======================================
 // actualizar usuario
 // =======================================
-app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRoleOMismoUsuario], (req, res) => {
+app.put('/:id', [mdAuth.verificaToken, mdAuth.verificaAdminRoleOMismoUsuario], (req, res) => {
 
     var id = req.params.id;
     var body = req.body;
 
-    Usuario.findById(id, (err, usuario) => {
+    User.findById(id, (err, usuario) => {
 
         if (err) {
             return res.status(500).json({
@@ -95,7 +94,7 @@ app.post('/', (req, res) => {
 
     var body = req.body;
 
-    var usuario = new Usuario({
+    var usuario = new User({
         nombre: body.nombre,
         email: body.email,
         password: bcrypt.hashSync(body.password, 10),
@@ -125,11 +124,11 @@ app.post('/', (req, res) => {
 // =======================================
 // borrar usuario
 // =======================================
-app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRole], (req, res) => {
+app.delete('/:id', [mdAuth.verificaToken, mdAuth.verificaAdminRole], (req, res) => {
 
     var id = req.params.id;
 
-    Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+    User.findByIdAndRemove(id, (err, usuarioBorrado) => {
 
         if (err) {
             return res.status(500).json({
