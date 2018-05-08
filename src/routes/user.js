@@ -28,8 +28,10 @@ app.get('/', (req, res) => {
             User.count({}, (err, count) => {
                 res.status(200).json({
                     ok: true,
-                    usuarios: usersDB,
-                    total: count
+                    payload: {
+                        total: count,
+                        users: usersDB
+                    }
                 });
             });
         });
@@ -43,7 +45,7 @@ app.put('/:id', [verifyUserToken, verifyAdminRolOnMyOwnUser], (req, res) => {
     const id = req.params.id;
     const body = req.body;
 
-    User.findById(id, (err, userDB) => {
+    User.findById(id, (err, foundUser) => {
 
         if (err) {
             return res.status(500).json({
@@ -53,7 +55,7 @@ app.put('/:id', [verifyUserToken, verifyAdminRolOnMyOwnUser], (req, res) => {
             });
         }
 
-        if (!userDB) {
+        if (!foundUser) {
             return res.status(400).json({
                 ok: false,
                 message: `User with id ${id} do not exist`,
@@ -61,11 +63,12 @@ app.put('/:id', [verifyUserToken, verifyAdminRolOnMyOwnUser], (req, res) => {
             });
         }
 
-        userDB.name = body.name;
-        userDB.email = body.email;
-        userDB.role = body.role;
+        foundUser.name = body.name;
+        foundUser.email = body.email;
+        foundUser.role = body.role;
 
-        userDB.save((err, savedUser) => {
+        foundUser.save((err, updatedUser) => {
+
             if (err) {
                 return res.status(400).json({
                     ok: false,
@@ -74,11 +77,11 @@ app.put('/:id', [verifyUserToken, verifyAdminRolOnMyOwnUser], (req, res) => {
                 });
             }
 
-            savedUser.password = '*******';
+            updatedUser.password = '*******';
 
             res.status(200).json({
                 ok: true,
-                user: savedUser
+                payload: updatedUser
             });
 
         });
@@ -115,7 +118,7 @@ app.post('/', (req, res) => {
 
         res.status(201).json({
             ok: true,
-            user: savedUser
+            payload: savedUser
         });
     });
 
@@ -140,7 +143,7 @@ app.delete('/:id', [verifyUserToken, verifyAdminUserRole], (req, res) => {
 
         res.status(200).json({
             ok: true,
-            user: deletedUser
+            payload: deletedUser
         });
     });
 });

@@ -1,4 +1,5 @@
 // require modules
+const dotenv            = require('dotenv').config();
 const express           = require('express');
 const mongoose          = require('mongoose');
 const bodyParser        = require('body-parser');
@@ -30,11 +31,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // Conection DB to MLab
-mongoose.connection
-    .openUri(`mongodb://${process.env.MONGO_AUTH}@${process.env.MONGO_HOST}`, (err, res) => {
-        if (err) throw err;
-        console.log('DB mongo \x1b[32m%s\x1b[0m', 'online');
-    });
+let mongoString = `mongodb://${process.env.MONGO_AUTH}@${process.env.MONGO_HOST}`;
+mongoose.connection.openUri(mongoString, (err, res) => {
+    if (err) throw err;
+});
 
 // routes
 app.use('/user', userRoutes);
@@ -47,8 +47,13 @@ app.use('/img', imageRoutes);
 app.use('/', appRuotes);
 
 // listener de peticiones
-app.listen(process.env.PORT || 3000, () => {
-    console.log('Express corriendo en  puerto \x1b[32m%s\x1b[0m', '3000');
+app.listen(process.env.PORT || 3000, (err) => {
+    if (err) throw err;
 });
+
+/*
+console.log('Express corriendo en  puerto \x1b[32m%s\x1b[0m', '3000');
+console.log('DB mongo \x1b[32m%s\x1b[0m', 'online');
+*/
 
 module.exports = app;

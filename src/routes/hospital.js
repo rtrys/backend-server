@@ -130,6 +130,7 @@ app.post('/', verifyUserToken, (req, res) => {
     });
 
     hospital.save((err, savedHospital) => {
+
         if (err) {
             return res.status(400).json({
                 ok: false,
