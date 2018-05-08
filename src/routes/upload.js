@@ -1,182 +1,183 @@
-var express = require('express');
-var fileupload = require('express-fileupload');
-var fs = require('fs');
+const express = require('express');
+const fileupload = require('express-fileupload');
+const fs = require('fs');
 
-var Usuario = require('../models/usuario');
-var Hospital = require('../models/hospital');
-var Medico = require('../models/medico');
+const Usuario = require('../models/user');
+const Medico = require('../models/doctor');
+const Hospital = require('../models/hospital');
 
-var app = express();
+const app = express();
 
 app.use(fileupload());
 
-app.put('/:tipo/:id', (req, res, next) => {
+app.put('/:type/:id', (req, res, next) => {
 
-    var tipo = req.params.tipo;
-    var id = req.params.id;
+    const type = req.params.type;
+    const id = req.params.id;
 
-    var colecciones = ['hospitales', 'medicos', 'usuarios'];
-    if (colecciones.indexOf(tipo) < 0) {
+    const colections = ['hospitals', 'doctors', 'usuers'];
+    if (colections.indexOf(type) < 0) {
         return res.status(400).json({
             ok: false,
-            message: 'No selecciono un tipo valido',
-            errs: { message: 'Debe selecionar un tipo valido' }
+            message: 'Invalid type',
+            errs: { message: 'Invalid type' }
         });
     }
 
     if (!req.files) {
         return res.status(400).json({
             ok: false,
-            message: 'No selecciono ningun archivo',
-            errs: { message: 'Debe selecionar una imagen' }
+            message: 'No file selected',
+            errs: { message: 'No file selected' }
         });
     }
 
     // get file name
-    var file = req.files.imagen;
-    var splitFile = file.name.split('.');
-    var extFile = splitFile[splitFile.length - 1];
-    var extsValidas = ['png', 'jpg', 'gif', 'jpeg'];
+    const file = req.files.image;
+    const fileSplit = file.name.split('.');
+    const fileExt = fileSplit[fileSplit.length - 1];
+    const validExts = ['png', 'jpg', 'gif', 'jpeg'];
 
-    if (extsValidas.indexOf(extFile) < 0) {
+    if (validExts.indexOf(fileExt) < 0) {
         return res.status(400).json({
             ok: false,
-            message: 'Extencion no valida',
-            errs: { message: 'las extenciones validas son: ' + extsValidas.join(', ') }
+            message: 'Invalid extension',
+            errs: { message: 'The valid extension are: ' + validExts.join(', ') }
         });
     }
 
     // nombre de archivo personalizado
-    var nombreArchivo = `${id}-${new Date().getMilliseconds()}.${extFile}`;
+    const fileName = `${id}-${new Date().getMilliseconds()}.${fileExt}`;
 
     // de acuerdo a la documentacion hay que mover el archivo
-    var path = `./uploads/${tipo}/${nombreArchivo}`;
+    const path = `./uploads/${type}/${fileName}`;
+
     file.mv(path, err => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: 'Error al mover el archivo',
+                message: 'Error to move file',
                 errs: err
             });
         }
-
-        subirPorTipo(tipo, id, nombreArchivo, res);
+        uploadByType(type, id, fileName, res);
     });
 });
 
-function subirPorTipo(tipo, id, nombreArchivo, res) {
+function uploadByType(type, id, fileName, res) {
 
-    if (tipo === 'usuarios') {
+    switch (type) {
+        case 'users':
+            Usuario.findById(id, (err, foundUser) => {
 
-        Usuario.findById(id, (err, usuarioEncontrado) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        message: 'Error',
+                        errs: err
+                    });
+                }
 
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    message: 'Error al buscar al usuario',
-                    errs: err
+                if (!foundUser) {
+                    return res.status(400).json({
+                        ok: false,
+                        message: 'Error',
+                        errs: { message: 'Error' }
+                    });
+                }
+
+                deleteIamgeIfExists(foundUser.img);
+
+                foundUser.img = fileName;
+                foundUser.save((err, updatedUser) => {
+                    updatedUser.password = '*******';
+                    return res.status(200).json({
+                        ok: true,
+                        message: 'Image updated',
+                        user: updatedUser
+                    });
                 });
-            }
 
-            if (!usuarioEncontrado) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Usuario nulo',
-                    errs: { message: 'Usuario nulo' }
-                });
-            }
-
-            deleteIamgeIfExists(usuarioEncontrado.img);
-
-            usuarioEncontrado.img = nombreArchivo;
-            usuarioEncontrado.save((err, usuarioActualizado) => {
-                usuarioActualizado.password = '*******';
-                return res.status(200).json({
-                    ok: true,
-                    message: 'Imagen de usuario actualizado',
-                    usuario: usuarioActualizado
-                });
             });
+            break;
 
-        });
-    }
+        case 'doctors':
+            Medico.findById(id, (err, foundDoctor) => {
 
-    if (tipo === 'medicos') {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        message: 'Error',
+                        errs: err
+                    });
+                }
 
-        Medico.findById(id, (err, medicoEncontrado) => {
+                if (!foundDoctor) {
+                    return res.status(400).json({
+                        ok: false,
+                        message: 'Error',
+                        errs: { message: 'Error' }
+                    });
+                }
 
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    message: 'Error al buscar al medico',
-                    errs: err
+                deleteIamgeIfExists(foundDoctor.img);
+
+                foundDoctor.img = fileName;
+                foundDoctor.save((err, updatedDoctor) => {
+                    return res.status(200).json({
+                        ok: true,
+                        message: 'Image updated',
+                        doctor: updatedDoctor
+                    });
                 });
-            }
 
-            if (!medicoEncontrado) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Medico nulo',
-                    errs: { message: 'Medico nulo' }
-                });
-            }
-
-            deleteIamgeIfExists(medicoEncontrado.img);
-
-            medicoEncontrado.img = nombreArchivo;
-            medicoEncontrado.save((err, medicoActualizado) => {
-                return res.status(200).json({
-                    ok: true,
-                    message: 'Imagen de medico actualizado',
-                    medico: medicoActualizado
-                });
             });
+            break;
+    
+        case 'hospitals':
+            Hospital.findById(id, (err, foundHospital) => {
 
-        });
-    }
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        message: 'Error',
+                        errs: err
+                    });
+                }
 
-    if (tipo === 'hospitales') {
+                if (!foundHospital) {
+                    return res.status(400).json({
+                        ok: false,
+                        message: 'Error',
+                        errs: { message: 'Error' }
+                    });
+                }
 
-        Hospital.findById(id, (err, hospitalEncontrado) => {
+                deleteIamgeIfExists(foundHospital.img);
 
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    message: 'Error al buscar al hospital',
-                    errs: err
+                foundHospital.img = fileName;
+                foundHospital.save((err, updatedHospital) => {
+                    return res.status(200).json({
+                        ok: true,
+                        message: 'Image updated',
+                        hospital: updatedHospital
+                    });
                 });
-            }
 
-            if (!hospitalEncontrado) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'hospital nulo',
-                    errs: { message: 'hospital nulo' }
-                });
-            }
-
-            deleteIamgeIfExists(hospitalEncontrado.img);
-
-            hospitalEncontrado.img = nombreArchivo;
-            hospitalEncontrado.save((err, hospitalActualizado) => {
-                return res.status(200).json({
-                    ok: true,
-                    message: 'Imagen de hospital actualizado',
-                    hospital: hospitalActualizado
-                });
             });
+            break;
 
-        });
+        default:
+        break;
     }
-
 }
 
 function deleteIamgeIfExists(fileName) {
 
-    var pathViejo = './uploads/hospitales/' + fileName;
+    const oldPath = `./uploads/${type}/${fileName}`;
 
-    if (fs.existsSync(pathViejo)) {
-        fs.unlink(pathViejo, err => null);
+    if (fs.existsSync(oldPath)) {
+        fs.unlink(oldPath, err => null);
         return true;
     } else {
         return false;

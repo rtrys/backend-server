@@ -4,13 +4,13 @@ const mongoose          = require('mongoose');
 const bodyParser        = require('body-parser');
 
 // my routes
-const userRoutes        = require('./routes/usuario');
+const userRoutes        = require('./routes/user');
 const hospitalRoutes    = require('./routes/hospital');
-const doctorRoutes      = require('./routes/medico');
-const searchRoutes      = require('./routes/busqueda');
+const doctorRoutes      = require('./routes/doctor');
+const searchRoutes      = require('./routes/search');
 const loginRoutes       = require('./routes/login');
 const uploadRoutes      = require('./routes/upload');
-const imageRoutes       = require('./routes/imagenes');
+const imageRoutes       = require('./routes/images');
 const appRuotes         = require('./routes/app');
 
 // initialization variables

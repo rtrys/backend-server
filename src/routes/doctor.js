@@ -1,37 +1,36 @@
-var express = require('express');
-var Medico = require('../models/medico');
-var mdAutenticacion = require('../middlewares/autenticacion');
+const express = require('express');
+const Doctor = require('../models/doctor');
+const { verifyUserToken } = require('../middlewares/auth');
 
-var app = express();
+const app = express();
 
 // =======================================
-// Obtener todos los medicos
+// Get all doctors
 // =======================================
 app.get('/', (req, res) => {
 
-    var desde = req.query.desde || 0;
-    desde = Number(desde);
+    const from = Number(req.query.desde || 0);
 
-    Medico.find({})
-        .skip(desde)
+    Doctor.find({})
+        .skip(from)
         .limit(5)
-        .populate('usuario', 'nombre email')
+        .populate('user', 'name email')
         .populate('hospital')
-        .exec((err, medicos) => {
+        .exec((err, doctors) => {
 
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: 'Error al buscar los medicos',
+                    message: 'Error',
                     errs: err
                 });
             }
 
-            Medico.count({}, (err, conteo) => {
+            Doctor.count({}, (err, count) => {
                 res.status(200).json({
                     ok: true,
-                    medicos: medicos,
-                    total: conteo
+                    doctors: doctors,
+                    total: count
                 });
             });
         });
@@ -42,31 +41,32 @@ app.get('/', (req, res) => {
 // =======================================
 app.get('/:id', (req, res) => {
 
-    var id = req.params.id;
-    Medico.findById(id)
-        .populate('usuario', 'nombre email img')
+    const id = req.params.id;
+
+    Doctor.findById(id)
+        .populate('user', 'name email img')
         .populate('hospital')
-        .exec((err, medico) => {
+        .exec((err, doctor) => {
 
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    message: 'Erro al buscar el medico',
+                    message: 'Error',
                     errs: err
                 });
             }
 
-            if (!medico) {
+            if (!doctor) {
                 return res.status(400).json({
                     ok: false,
-                    message: 'No es encuentr el medico con ID ' + id,
-                    errs: { message: 'No se encuentra el medico con el ID ' + id }
+                    message: 'Error',
+                    errs: { message: 'Error' }
                 });
             }
 
             return res.status(200).json({
                 ok: true,
-                medico
+                doctor
             });
 
         });
@@ -74,47 +74,47 @@ app.get('/:id', (req, res) => {
 });
 
 // =======================================
-// Editar un medico
+// Edit a doctor
 // =======================================
-app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
+app.put('/:id', verifyUserToken, (req, res) => {
 
-    var id = req.params.id;
-    var usuario = req.usuario;
-    var body = req.body;
+    const id = req.params.id;
+    const user = req.user;
+    const body = req.body;
 
-    Medico.findById(id, (err, medico) => {
+    Doctor.findById(id, (err, doctor) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: 'Erro al buscar el medico',
+                message: 'Error',
                 errs: err
             });
         }
 
-        if (!medico) {
+        if (!doctor) {
             return res.status(400).json({
                 ok: false,
-                message: 'No es encuentr el medico con ID ' + id,
-                errs: { message: 'No se encuentra el medico con el ID ' + id }
+                message: 'Error',
+                errs: { message: 'Error'}
             });
         }
 
-        medico.nombre = body.nombre;
-        medico.usuario = usuario._id;
-        medico.hospital = body.hospital;
+        doctor.name = body.name;
+        doctor.user = user._id;
+        doctor.hospital = body.hospital;
 
-        medico.save((err, medicoGuardado) => {
+        doctor.save((err, savedDoctor) => {
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    message: 'No se puedo actualizar el medico',
+                    message: 'Error',
                     errs: err
                 });
             }
 
             res.status(200).json({
                 ok: true,
-                medico: medicoGuardado
+                doctor: savedDoctor
             });
         });
 
@@ -123,54 +123,54 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 });
 
 // =======================================
-// Crear un medico
+// Create a doctor
 // =======================================
-app.post('/', mdAutenticacion.verificaToken, (req, res) => {
+app.post('/', verifyUserToken, (req, res) => {
 
-    var body = req.body;
-    var usuario = req.usuario;
+    const body = req.body;
+    const user = req.user;
 
-    var medico = new Medico({
-        nombre: body.nombre,
-        usuario: usuario._id,
+    const doctor = new Doctor({
+        name: body.name,
+        user: user._id,
         hospital: body.hospital
     });
 
-    medico.save((err, medicoGuardado) => {
+    doctor.save((err, savedDoctor) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
-                message: 'No es posible crear el medico',
+                message: 'Error',
                 errs: err
             });
         }
 
         res.status(201).json({
             ok: true,
-            medico: medicoGuardado
+            doctor: savedDoctor
         });
     });
 });
 
 // =======================================
-// Borrar un medico
+// Delete doctor
 // =======================================
-app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
+app.delete('/:id', verifyUserToken, (req, res) => {
 
-    var id = req.params.id;
+    const id = req.params.id;
 
-    Medico.findByIdAndRemove(id, (err, medicoBorrado) => {
+    Doctor.findByIdAndRemove(id, (err, deletedDoctor) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                message: 'Error al borrar el medico',
+                message: 'Error',
                 errs: err
             });
         }
 
         res.status(200).json({
             ok: true,
-            medico: medicoBorrado
+            doctor: deletedDoctor
         });
     });
 

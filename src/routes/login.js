@@ -1,18 +1,18 @@
-var express = require('express');
-var bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken');
-var mdAuth = require('../middlewares/autenticacion');
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { verifyUserToken } = require('../middlewares/auth');
 
 // google
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-var app = express();
-var Usuario = require('../models/usuario');
+const app = express();
+const User = require('../models/user');
 
 
 // =========================================
-// autenticacion con google
+// google auth
 // =========================================
 async function verify(token) {
     const ticket = await client.verifyIdToken({
@@ -28,7 +28,7 @@ async function verify(token) {
     //const domain = payload['hd'];
 
     return {
-        nombre: payload.name,
+        name: payload.name,
         email: payload.email,
         img: payload.picture,
         google: true
@@ -37,76 +37,76 @@ async function verify(token) {
 
 app.post('/google', async(req, res) => {
 
-    var token = req.body.token;
+    const token = req.body.token;
 
-    var userGoogle = await verify(token)
+    const userGoogle = await verify(token)
         .catch(err => {
             return res.status(403).json({
                 ok: false,
-                message: "Token no valido",
+                message: "Invalid token",
                 errs: err
             });
         });
 
-    Usuario.findOne({
+    User.findOne({
         email: userGoogle.email
-    }, (err, usuario) => {
+    }, (err, user) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: "Error al buscar usuario",
+                message: "Error finding user",
                 errs: err
             });
         }
 
-        if (usuario) {
-            if (!usuario.google) {
+        if (user) {
+            if (!user.google) {
                 return res.status(400).json({
                     ok: false,
-                    mensaje: "Usar autnticacion normal",
+                    message: "Usar autnticacion normal",
                     errs: { message: "Usuario creado con email y password, no con google" }
                 });
             } else {
 
-                let jwtToken = createToken(usuario);
+                let jwtToken = createToken(user);
 
                 return res.status(200).json({
                     ok: true,
-                    usuario: usuario,
+                    user: user,
                     token: jwtToken,
-                    id: usuario._id,
-                    menu: obtenerMenu(usuario.role)
+                    id: user._id,
+                    menu: getMenu(user.role)
                 });
             }
 
         } else {
             // No se ha encontrado ningun usuario con ese email
 
-            var usuarioNuevo = new Usuario({
-                nombre: userGoogle.name,
+            const newUser = new User({
+                name: userGoogle.name,
                 email: userGoogle.email,
                 password: "*****",
                 img: userGoogle.picture,
                 google: true
             });
 
-            usuarioNuevo.save((err, usuario) => {
+            newUser.save((err, savedUser) => {
                 if (err) {
                     return res.status(500).json({
                         ok: false,
-                        mensaje: "Error al crear usuario",
+                        message: "Error al crear usuario",
                         errs: err
                     });
                 }
 
-                let jwtToken = createToken(usuario);
+                let jwtToken = createToken(savedUser);
 
                 return res.status(200).json({
                     ok: true,
-                    usuario: usuario,
+                    user: savedUser,
                     token: jwtToken,
-                    id: usuario._id,
-                    menu: obtenerMenu(usuario.role)
+                    id: savedUser._id,
+                    menu: getMenu(savedUser.role)
                 });
 
             });
@@ -121,9 +121,9 @@ app.post('/google', async(req, res) => {
 // =========================================
 app.post('/', (req, res) => {
 
-    var body = req.body;
+    const body = req.body;
 
-    Usuario.findOne({ email: body.email }, (err, usuarioDB) => {
+    User.findOne({ email: body.email }, (err, foundUser) => {
 
         if (err) {
             return res.status(500).json({
@@ -133,7 +133,7 @@ app.post('/', (req, res) => {
             });
         }
 
-        if (!usuarioDB) {
+        if (!foundUser) {
             return res.status(400).json({
                 ok: false,
                 message: "Credenciales incorrectas - email",
@@ -141,7 +141,7 @@ app.post('/', (req, res) => {
             });
         }
 
-        if (!bcrypt.compareSync(body.password, usuarioDB.password)) {
+        if (!bcrypt.compareSync(body.password, foundUser.password)) {
             return res.status(400).json({
                 ok: false,
                 message: "Credenciales incorrectas - password",
@@ -149,14 +149,14 @@ app.post('/', (req, res) => {
             });
         }
 
-        let jwtToken = createToken(usuarioDB);
+        let jwtToken = createToken(foundUser);
 
         res.status(200).json({
             ok: true,
-            usuario: usuarioDB,
+            user: foundUser,
             token: jwtToken,
-            id: usuarioDB._id,
-            menu: obtenerMenu(usuarioDB.role)
+            id: foundUser._id,
+            menu: getMenu(foundUser.role)
         });
     });
 
@@ -166,9 +166,9 @@ app.post('/', (req, res) => {
 // =========================================
 // autenticacion normal
 // =========================================
-app.post('/renuevatoken', [mdAuth.verificaToken], (req, res) => {
+app.post('/renuevatoken', [verifyUserToken], (req, res) => {
 
-    var token = createToken(req.usuario);
+    const token = createToken(req.usuario);
 
     return res.status(200).json({
         ok: true,
@@ -182,13 +182,13 @@ function createToken(usuario) {
     usuario.password = "*****";
 
     // el token debe expirar en 4 horas 
-    return token = jwt.sign({ usuario: usuario },
+    return jwt.sign({ user: usuario },
         process.env.JWT_SEED, { expiresIn: 14400 }
     );
 
 }
 
-function obtenerMenu(ROLE) {
+function getMenu(ROLE) {
 
     let menu = [{
             titulo: 'Principal',
