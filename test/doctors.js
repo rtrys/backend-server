@@ -1,6 +1,6 @@
 const dotenv = require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('../src/models/user');
+const Doctor = require('../src/models/doctor');
 const auth = require('../src/middlewares/auth');
 
 const chai = require('chai');
@@ -8,16 +8,15 @@ const sinon = require('sinon');
 const chaiHttp = require('chai-http');
 
 let stubVerifyToken;
-let stubVerifyAdminRolOnMyOwnUser;
 let stubVerifyAdminUserRole;
 let server;
 
 const should = chai.should();
 chai.use(chaiHttp);
 
-describe('Users', () => {
+describe('Doctors', () => {
 
-    const urlBase = `/user`;
+    const urlBase = `/doctor`;
    
     beforeEach((done) => {
         
@@ -30,7 +29,7 @@ describe('Users', () => {
         stubVerifyAdminRolOnMyOwnUser = sinon.stub(auth, 'verifyAdminRolOnMyOwnUser').callsFake((req, res, next) =>  next() );
 
         // clear DB
-        User.remove({}, (err) => done());
+        Doctor.remove({}, (err) => done());
         
         // now we can create server
         server = require('../src/app');
@@ -46,46 +45,38 @@ describe('Users', () => {
     });
 
     describe(`GET ${urlBase}`, () => {
-        it('it should GET all users', (done) => {
+        it('it should GET all doctors', (done) => {
             chai.request(server)
             .get(`${urlBase}`)
             .end((err, res) => {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                res.body.payload.users.should.be.a('array');
+                res.body.payload.doctors.should.be.a('array');
                 done();
             });
         });
     });
 
     describe(`POST ${urlBase}`, () => {
-        it('it should not POST a user without email', (done) => {
-
-            let body = {
-                name: 'Hugo Ortiz',
-                pass: '123456'
-            };
+        it('it should not POST a doctor without name and hospital', (done) => {
 
             chai.request(server)
             .post(`${urlBase}`)
-            .send(body)
+            .send({})
             .end((err, res) => {
                 res.should.have.status(400);
                 res.body.should.be.a('object');
                 done();
             });
         });
-        it('it should POST a new user', (done) => {
-
-            let body = {
-                name: 'Hugo Ortiz',
-                email: 'hugo.er.ortiz@gmail.com',
-                pass: '123456'
-            };
+        it('it should POST a new doctor', (done) => {
 
             chai.request(server)
             .post(`${urlBase}`)
-            .send(body)
+            .send({ 
+                name: 'Dr Pepito',
+                hospital: '123456789123456789123456'
+            })
             .end((err, res) => {
                 res.should.have.status(201);
                 res.body.should.be.a('object');
@@ -97,18 +88,17 @@ describe('Users', () => {
     });
 
     describe(`PUT ${urlBase}/:id`, () => {
-        it('it should UPDATE a user given the ID', (done) => {
+        it('it should UPDATE a doctor given the ID', (done) => {
 
-            let body = new User({
-                name: 'Hugo Ortiz',
-                email: 'hugo.er.ortiz@gmail.com',
-                role: 'USER_ROLE',
-                pass: '123456'
+            let body = new Doctor({
+                name: 'Dr Pepito',
+                user: '123456789123456789123456',
+                hospital: '123456789123456789123456'
             });
 
             body.save((err, savedResp) => {
 
-                body.name = 'Ortiz Hugo';
+                body.name = 'Dra Juana de Arco';
 
                 chai.request(server)
                 .put(`${urlBase}/${savedResp._id}`)
@@ -117,7 +107,7 @@ describe('Users', () => {
                     res.should.have.status(200);
                     res.body.should.be.a('object');
                     res.body.payload.should.be.a('object');
-                    res.body.payload.name.should.be.eql('Ortiz Hugo');
+                    res.body.payload.name.should.be.eql('Dra Juana de Arco');
                     done();
                 });
 
@@ -126,13 +116,12 @@ describe('Users', () => {
     });
 
     describe(`DELETE ${urlBase}/:id`, () => {
-        it('it should DELETE a user given the ID', (done) => {
+        it('it should DELETE a doctor given the ID', (done) => {
 
-            let body = new User({
-                name: 'Hugo Ortiz',
-                email: 'hugo.er.ortiz@gmail.com',
-                role: 'USER_ROLE',
-                pass: '123456'
+            let body = new Doctor({
+                name: 'Dr Pepito',
+                user: '123456789123456789123456',
+                hospital: '123456789123456789123456'
             });
 
             body.save((err, savedResp) => {

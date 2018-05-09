@@ -15,6 +15,8 @@ const should = chai.should();
 chai.use(chaiHttp);
 
 describe('Hospitals', () => {
+
+    const urlBase = `/hospital`;
    
     beforeEach((done) => {
         
@@ -42,24 +44,24 @@ describe('Hospitals', () => {
         done();
     });
 
-    describe('GET /hospital', () => {
+    describe(`GET ${urlBase}`, () => {
         it('it should GET all hospitals', (done) => {
             chai.request(server)
-            .get('/hospital')
+            .get(`${urlBase}`)
             .end((err, res) => {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                res.body.hospitals.should.be.a('array');
+                res.body.payload.hospitals.should.be.a('array');
                 done();
             });
         });
     });
 
-    describe('POST /hospital', () => {
-        it('it should not POST a hospital without user', (done) => {
+    describe(`POST ${urlBase}`, () => {
+        it('it should not POST a hospital without name', (done) => {
 
             chai.request(server)
-            .post('/hospital')
+            .post(`${urlBase}`)
             .send({})
             .end((err, res) => {
                 res.should.have.status(400);
@@ -70,19 +72,19 @@ describe('Hospitals', () => {
         it('it should POST a new Hospital', (done) => {
 
             chai.request(server)
-            .post('/hospital')
+            .post(`${urlBase}`)
             .send({ name: 'Hospital Nacional Regional de Escuintla' })
             .end((err, res) => {
                 res.should.have.status(201);
                 res.body.should.be.a('object');
-                res.body.hospital.should.be.a('object');
-                res.body.hospital.should.have.property('_id');
+                res.body.payload.should.be.a('object');
+                res.body.payload.should.have.property('_id');
                 done();
             });
         });
     });
 
-    describe('PUT /hospital/:id', () => {
+    describe(`PUT ${urlBase}/:id`, () => {
         it('it should UPDATE a hospital given the ID', (done) => {
 
             let body = new Hospital({
@@ -90,18 +92,18 @@ describe('Hospitals', () => {
                 user: '123456789123456789123456'
             });
 
-            hospital.save((err, savedHospital) => {
+            body.save((err, savedResp) => {
 
-                hospital.name = 'Hospital San Juan de Dios';
+                body.name = 'Hospital San Juan de Dios';
 
                 chai.request(server)
-                .put(`/hospital/${savedHospital._id}`)
-                .send(hospital)
+                .put(`${urlBase}/${savedResp._id}`)
+                .send(body)
                 .end((err, res) => {
                     res.should.have.status(200);
                     res.body.should.be.a('object');
-                    res.body.hospital.should.be.a('object');
-                    res.body.hospital.name.should.be.eql('Hospital San Juan de Dios');
+                    res.body.payload.should.be.a('object');
+                    res.body.payload.name.should.be.eql('Hospital San Juan de Dios');
                     done();
                 });
 
@@ -109,22 +111,23 @@ describe('Hospitals', () => {
         });
     });
 
-    xdescribe('DELETE /hospital/:id', () => {
+    describe(`DELETE ${urlBase}/:id`, () => {
         it('it should DELETE a hospital given the ID', (done) => {
 
             let body = new Hospital({
                 name: 'Hospital Nacional Regional de Escuintla',
+                user: '123456789123456789123456'
             });
 
-            body.save((err, savedUser) => {
+            body.save((err, savedResp) => {
 
                 chai.request(server)
-                .delete(`/user/${savedUser._id}`)
+                .delete(`${urlBase}/${savedResp._id}`)
                 .end((err, res) => {
                     res.should.have.status(200);
                     res.body.should.be.a('object');
-                    res.body.user.should.be.a('object');
-                    res.body.user._id.should.be.eql(`${savedUser._id}`);
+                    res.body.payload.should.be.a('object');
+                    res.body.payload._id.should.be.eql(`${savedResp._id}`);
                     done();
                 });
 

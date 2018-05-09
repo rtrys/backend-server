@@ -29,8 +29,10 @@ app.get('/', (req, res) => {
             Doctor.count({}, (err, count) => {
                 res.status(200).json({
                     ok: true,
-                    doctors: doctors,
-                    total: count
+                    payload: {
+                        doctors: doctors,
+                        total: count
+                    }
                 });
             });
         });
@@ -66,7 +68,7 @@ app.get('/:id', (req, res) => {
 
             return res.status(200).json({
                 ok: true,
-                doctor
+                payload: doctor
             });
 
         });
@@ -114,7 +116,7 @@ app.put('/:id', verifyUserToken, (req, res) => {
 
             res.status(200).json({
                 ok: true,
-                doctor: savedDoctor
+                payload: savedDoctor
             });
         });
 
@@ -147,7 +149,7 @@ app.post('/', verifyUserToken, (req, res) => {
 
         res.status(201).json({
             ok: true,
-            doctor: savedDoctor
+            payload: savedDoctor
         });
     });
 });
@@ -170,7 +172,7 @@ app.delete('/:id', verifyUserToken, (req, res) => {
 
         res.status(200).json({
             ok: true,
-            doctor: deletedDoctor
+            payload: deletedDoctor
         });
     });
 
